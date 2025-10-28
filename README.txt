@@ -4,10 +4,17 @@ public void updateFiles(List<FileDto> fileList) {
 
     FileDto file = fileList.get(0);
     
-    // Простой JSON объект
+    // JSON с несколькими полями
     String updateQuery = 
         "UPDATE company_doc_version " +
-        "SET files = '{\"id\":\"" + file.getId() + "\"}' " +
+        "SET files = '{" +
+        "\"id\":\"" + file.getId() + "\"," +
+        "\"md5\":\"" + file.getMd5() + "\"," +
+        "\"name\":\"" + file.getName() + "\"," +
+        "\"filesize\":" + file.getFileSize() + "," +
+        "\"mimeType\":\"" + file.getMimeType() + "\"," +
+        "\"extension\":\"" + file.getExtension() + "\"" +
+        "}' " +
         "WHERE id = 699";
 
     System.out.println("SQL: " + updateQuery);
@@ -15,12 +22,6 @@ public void updateFiles(List<FileDto> fileList) {
     try {
         int updated = entityManager.createNativeQuery(updateQuery).executeUpdate();
         System.out.println("Updated rows: " + updated);
-        
-        // Проверим результат
-        Object result = entityManager.createNativeQuery(
-            "SELECT files->>'id' FROM company_doc_version WHERE id = 699")
-            .getSingleResult();
-        System.out.println("New ID in DB: " + result);
         
     } catch (Exception e) {
         System.out.println("Error: " + e.getMessage());
