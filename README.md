@@ -11,8 +11,3 @@
                 file.getExtension()
             ))
             .collect(Collectors.joining(",")) + "]";
-        entityManager.createNativeQuery(updateVersionsQuery)
-            .setParameter(1, filesArray)
-            .executeUpdate();
-    }
-}
