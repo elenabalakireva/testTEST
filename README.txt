@@ -1,33 +1,30 @@
-// Создаем SQL массив
-    String sqlArray = fileList.stream()
-        .map(file -> String.format(
-            "'{\"id\":\"%s\",\"md5\":\"%s\",\"name\":\"%s\",\"filesize\":%d,\"mimeType\":\"%s\",\"extension\":\"%s\"}'",
-            file.getId(), file.getMd5(), file.getName(),
-            file.getFileSize(), file.getMimeType(), file.getExtension()
-        ))
-        .collect(Collectors.joining(", "));
+@Transactional
+public void updateFiles(List<FileDto> fileList) {
+    if (fileList == null || fileList.isEmpty()) return;
 
+    // Берем только первый файл для теста
+    FileDto file = fileList.get(0);
+    
+    // САМЫЙ ПРОСТОЙ запрос без массивов
     String updateQuery = 
         "UPDATE company_doc_version " +
-        "SET files = (" +
-        "    SELECT jsonb_build_object(" +
-        "        'id', (elem::jsonb)->>'id', " +  // ->> для текста
-        "        'md5', (elem::jsonb)->>'md5', " +
-        "        'name', (elem::jsonb)->>'name', " +
-        "        'filesize', ((elem::jsonb)->>'filesize')::bigint, " +  // :: вместо ->
-        "        'mimeType', (elem::jsonb)->>'mimeType', " +
-        "        'extension', (elem::jsonb)->>'extension'" +
-        "    ) " +
-        "    FROM unnest(ARRAY[" + sqlArray + "]) AS elem " +
-        "    ORDER BY random() " +
-        "    LIMIT 1" +
+        "SET files = jsonb_build_object(" +
+        "    'id', '" + file.getId() + "', " +
+        "    'md5', '" + file.getMd5() + "', " +
+        "    'name', '" + file.getName() + "', " +
+        "    'filesize', " + file.getFileSize() + ", " +
+        "    'mimeType', '" + file.getMimeType() + "', " +
+        "    'extension', '" + file.getExtension() + "'" +
         ") " +
         "WHERE files IS NOT NULL AND id BETWEEN 699 AND 700";
 
+    System.out.println("SQL: " + updateQuery); // ← ВЫВЕДЕМ ЗАПРОС
+    
     try {
-        entityManager.createNativeQuery(updateQuery)
-            .executeUpdate();  // БЕЗ setParameter!
-        System.out.println("@@@");
+        int updated = entityManager.createNativeQuery(updateQuery).executeUpdate();
+        System.out.println("Updated rows: " + updated);
     } catch (Exception e) {
-        throw new UpdateDataBaseException("!!!!!" + e, e);
+        System.out.println("Error: " + e.getMessage());
+        throw new UpdateDataBaseException("SQL Error", e);
     }
+}
