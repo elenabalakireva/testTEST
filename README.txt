@@ -1,4 +1,4 @@
-
+*** .java ***
 // Создаем массив JSON строк для PostgreSQL
         String filesArray = "ARRAY[" + shuffleFiles.stream()
             .map(file -> String.format(
