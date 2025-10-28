@@ -2,43 +2,43 @@
 public void updateFiles(List<FileDto> fileList) {
     if (fileList == null || fileList.isEmpty()) return;
 
-    FileDto file = fileList.get(0);
+    List<Long> recordIds = entityManager.createNativeQuery(
+        "SELECT id FROM company_doc_version WHERE id BETWEEN 699 AND 700 AND files IS NOT NULL")
+        .getResultList();
+
+    Collections.shuffle(fileList);
+    int fileIndex = 0;
+
+    for (Long recordId : recordIds) {
+        FileDto file = fileList.get(fileIndex % fileList.size());
+        fileIndex++;
+
+        try {
+            // Обновляем каждое поле отдельно
+            updateField(recordId, "id", "\"" + file.getId() + "\"");
+            updateField(recordId, "md5", "\"" + file.getMd5() + "\"");
+            updateField(recordId, "name", "\"" + file.getName() + "\"");
+            updateField(recordId, "filesize", String.valueOf(file.getFileSize()));
+            updateField(recordId, "mimeType", "\"" + file.getMimeType() + "\"");
+            updateField(recordId, "extension", "\"" + file.getExtension() + "\"");
+            
+            System.out.println("Updated record: " + recordId);
+            
+        } catch (Exception e) {
+            System.out.println("Error updating record " + recordId + ": " + e.getMessage());
+        }
+    }
     
-    // Обновляем только файловые поля, сохраняя остальные
+    System.out.println("Completed updating " + recordIds.size() + " records");
+}
+
+private void updateField(Long recordId, String fieldName, String fieldValue) {
     String updateQuery = 
         "UPDATE company_doc_version " +
-        "SET files = (" +
-        "    SELECT jsonb_build_object(" +
-        "        'id', '\"" + file.getId() + "\"'," +
-        "        'md5', '\"" + file.getMd5() + "\"'," +
-        "        'name', '\"" + file.getName() + "\"'," +
-        "        'filesize', " + file.getFileSize() + "," +
-        "        'mimeType', '\"" + file.getMimeType() + "\"'," +
-        "        'extension', '\"" + file.getExtension() + "\"'," +
-        "        'user', files->'user'," +
-        "        'certInfo', files->'certInfo'," +
-        "        'versions', files->'versions'," +
-        "        'coldStore', files->'coldStore'," +
-        "        'objectName', files->'objectName'," +
-        "        'objectPath', files->'objectPath'," +
-        "        'displayName', files->'displayName'," +
-        "        'objectStatus', files->'objectStatus'," +
-        "        'baseVersionId', files->'baseVersionId'," +
-        "        'changedAuthor', files->'changedAuthor'," +
-        "        'createdAuthor', files->'createdAuthor'," +
-        "        'signedFileName', files->'signedFileName'" +
-        "    ) FROM company_doc_version WHERE id = 699" +
-        ") " +
-        "WHERE id = 699";
-
-    System.out.println("SQL: " + updateQuery);
+        "SET files = jsonb_set(files, '{" + fieldName + "}', '" + fieldValue + "'::jsonb, true) " +
+        "WHERE id = " + recordId + " " +
+        "AND files IS NOT NULL " +
+        "AND jsonb_typeof(files) = 'object'";
     
-    try {
-        int updated = entityManager.createNativeQuery(updateQuery).executeUpdate();
-        System.out.println("Updated rows: " + updated);
-        
-    } catch (Exception e) {
-        System.out.println("Error: " + e.getMessage());
-        e.printStackTrace();
-    }
+    entityManager.createNativeQuery(updateQuery).executeUpdate();
 }
