@@ -2,26 +2,27 @@
 public void updateFiles(List<FileDto> fileList) {
     if (fileList == null || fileList.isEmpty()) return;
 
-    // Пробуем жестко закодированное значение с ПРАВИЛЬНЫМИ кавычками
-    String updateQuery = 
-        "UPDATE company_doc_version " +
-        "SET files = jsonb_set(files, '{id}', '\"test-id-123\"'::jsonb) " +  // ← ОДИНАРНЫЕ кавычки снаружи
-        "WHERE id = 699";
-
-    System.out.println("SQL: " + updateQuery);
-    
+    // Сначала проверим существует ли запись
     try {
+        Long count = (Long) entityManager.createNativeQuery(
+            "SELECT COUNT(*) FROM company_doc_version WHERE id = 699")
+            .getSingleResult();
+        System.out.println("Records with id=699: " + count);
+        
+        if (count == 0) {
+            System.out.println("No record with id=699 found!");
+            return;
+        }
+        
+        // Простой update
+        String updateQuery = "UPDATE company_doc_version SET files = '{\"test\":\"value\"}' WHERE id = 699";
+        System.out.println("SQL: " + updateQuery);
+        
         int updated = entityManager.createNativeQuery(updateQuery).executeUpdate();
         System.out.println("Updated rows: " + updated);
         
-        // Проверим результат
-        Object newId = entityManager.createNativeQuery(
-            "SELECT files->>'id' FROM company_doc_version WHERE id = 699")
-            .getSingleResult();
-        System.out.println("New ID in DB: " + newId);
-        
     } catch (Exception e) {
-        System.out.println("Error updating: " + e.getMessage());
+        System.out.println("Error: " + e.getMessage());
         e.printStackTrace();
     }
 }
