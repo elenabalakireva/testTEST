@@ -1,4 +1,7 @@
-@Autowired
+@Repository
+public class CompanyDocRepository {
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Transactional
@@ -7,26 +10,46 @@
             return;
         }
 
-        // Для каждого индекса в массиве files выбираем случайный FileDto
-        for (int i = 0; i < getMaxArrayLength(); i++) {
+        int maxArrayLength = getMaxArrayLength();
+        for (int i = 0; i < maxArrayLength; i++) {
             FileDto randomFile = files.get(new Random().nextInt(files.size()));
-            updateFileAtIndex(i, randomFile);
+            updateFileFieldsAtIndex(i, randomFile);
         }
     }
 
-    private void updateFileAtIndex(int index, FileDto file) {
+    private void updateFileFieldsAtIndex(int index, FileDto file) {
         String sql = "UPDATE company_doc_version " +
             "SET files = jsonb_set( " +
             "    files, " +
             "    '{${index}}', " +
-            "    jsonb_build_object( " +
-            "        'id', ?, " +
-            "        'md5', ?, " +
-            "        'name', ?, " +
-            "        'filesize', ?, " +
-            "        'mimeType', ?, " +
-            "        'extension', ?, " +
-            "        'displayName', ? " +
+            "    jsonb_set( " +
+            "        jsonb_set( " +
+            "            jsonb_set( " +
+            "                jsonb_set( " +
+            "                    jsonb_set( " +
+            "                        jsonb_set( " +
+            "                            jsonb_set( " +
+            "                                files->${index}, " +
+            "                                '{id}', " +
+            "                                to_jsonb(?) " +
+            "                            ), " +
+            "                            '{md5}', " +
+            "                            to_jsonb(?) " +
+            "                        ), " +
+            "                        '{name}', " +
+            "                        to_jsonb(?) " +
+            "                    ), " +
+            "                    '{filesize}', " +
+            "                    to_jsonb(?) " +
+            "                ), " +
+            "                '{mimeType}', " +
+            "                to_jsonb(?) " +
+            "            ), " +
+            "            '{extension}', " +
+            "            to_jsonb(?) " +
+            "        ), " +
+            "        '{displayName}', " +
+            "        to_jsonb(?) " +
             "    ) " +
             ") " +
             "WHERE id BETWEEN 760 AND 761 " +
@@ -36,9 +59,14 @@
         sql = sql.replace("${index}", String.valueOf(index));
 
         jdbcTemplate.update(sql,
-            file.getId(), file.getMd5(), file.getName(),
-            file.getFileSize(), file.getMimeType(), 
-            file.getExtension(), file.getDisplayName(), index
+            file.getId(), 
+            file.getMd5(), 
+            file.getName(),
+            file.getFileSize(), 
+            file.getMimeType(), 
+            file.getExtension(), 
+            file.getDisplayName(), 
+            index
         );
     }
 
@@ -47,3 +75,4 @@
         Integer maxLength = jdbcTemplate.queryForObject(sql, Integer.class);
         return maxLength != null ? maxLength : 0;
     }
+}
