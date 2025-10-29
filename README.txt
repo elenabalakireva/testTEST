@@ -8,23 +8,27 @@ SET files = COALESCE(
                         jsonb_set(
                             jsonb_set(
                                 jsonb_set(
-                                    elem,
-                                    '{id}',
-                                    '"123"'
+                                    jsonb_set(
+                                        elem,
+                                        '{id}',
+                                        '"123"'
+                                    ),
+                                    '{md5}',
+                                    '"456"'
                                 ),
-                                '{md5}',
-                                '"456"'
+                                '{name}',
+                                '"test"'
                             ),
-                            '{name}',
-                            '"test"'
+                            '{filesize}',
+                            '1'
                         ),
-                        '{filesize}',
-                        '1'
+                        '{mimeType}',
+                        '"test"'
                     ),
-                    '{mimeType}',
+                    '{extension}',
                     '"test"'
                 ),
-                '{extension}',
+                '{displayName}',
                 '"test"'
             )
         )
