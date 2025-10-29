@@ -1,8 +1,11 @@
-@PersistenceContext
-    private EntityManager entityManager;
-    
+@Repository
+public class CompanyDocRepository {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Transactional
-    public void updateFiles() {
+    public void updateFiles(FileDto file) {
         String sql = "UPDATE company_doc_version " +
             "SET files = COALESCE( " +
             "    ( " +
@@ -16,25 +19,25 @@
             "                                    jsonb_set( " +
             "                                        elem, " +
             "                                        '{id}', " +
-            "                                        '\"123\"' " +
+            "                                        ? " +
             "                                    ), " +
             "                                    '{md5}', " +
-            "                                    '\"456\"' " +
+            "                                    ? " +
             "                                ), " +
             "                                '{name}', " +
-            "                                '\"test\"' " +
+            "                                ? " +
             "                            ), " +
             "                            '{filesize}', " +
-            "                            '1' " +
+            "                            ? " +
             "                        ), " +
             "                        '{mimeType}', " +
-            "                        '\"test\"' " +
+            "                        ? " +
             "                    ), " +
             "                    '{extension}', " +
-            "                    '\"test\"' " +
+            "                    ? " +
             "                ), " +
             "                '{displayName}', " +
-            "                '\"test\"' " +
+            "                ? " +
             "            ) " +
             "        ) " +
             "        FROM jsonb_array_elements(files) AS elem " +
@@ -43,8 +46,17 @@
             ") " +
             "WHERE id BETWEEN 760 AND 761 " +
             "AND files IS NOT NULL";
-            
-        Query query = entityManager.createNativeQuery(sql);
-        int updatedRows = query.executeUpdate();
+
+        int updatedRows = jdbcTemplate.update(sql,
+            "\"" + file.getId() + "\"",
+            "\"" + file.getMd5() + "\"",
+            "\"" + file.getName() + "\"",
+            file.getFileSize(),
+            "\"" + file.getMimeType() + "\"",
+            "\"" + file.getExtension() + "\"",
+            "\"" + file.getDisplayName() + "\""
+        );
+        
         System.out.println("Updated rows: " + updatedRows);
     }
+}
