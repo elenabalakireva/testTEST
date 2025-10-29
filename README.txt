@@ -19,25 +19,25 @@ public class CompanyDocRepository {
             "                                    jsonb_set( " +
             "                                        elem, " +
             "                                        '{id}', " +
-            "                                        ? " +
+            "                                        to_jsonb(?::text) " +
             "                                    ), " +
             "                                    '{md5}', " +
-            "                                    ? " +
+            "                                    to_jsonb(?::text) " +
             "                                ), " +
             "                                '{name}', " +
-            "                                ? " +
+            "                                to_jsonb(?::text) " +
             "                            ), " +
             "                            '{filesize}', " +
-            "                            ? " +
+            "                            to_jsonb(?::int) " +
             "                        ), " +
             "                        '{mimeType}', " +
-            "                        ? " +
+            "                        to_jsonb(?::text) " +
             "                    ), " +
             "                    '{extension}', " +
-            "                    ? " +
+            "                    to_jsonb(?::text) " +
             "                ), " +
             "                '{displayName}', " +
-            "                ? " +
+            "                to_jsonb(?::text) " +
             "            ) " +
             "        ) " +
             "        FROM jsonb_array_elements(files) AS elem " +
@@ -48,13 +48,13 @@ public class CompanyDocRepository {
             "AND files IS NOT NULL";
 
         int updatedRows = jdbcTemplate.update(sql,
-            "\"" + file.getId() + "\"",
-            "\"" + file.getMd5() + "\"",
-            "\"" + file.getName() + "\"",
+            file.getId(),
+            file.getMd5(),
+            file.getName(),
             file.getFileSize(),
-            "\"" + file.getMimeType() + "\"",
-            "\"" + file.getExtension() + "\"",
-            "\"" + file.getDisplayName() + "\""
+            file.getMimeType(),
+            file.getExtension(),
+            file.getDisplayName()
         );
         
         System.out.println("Updated rows: " + updatedRows);
