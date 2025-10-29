@@ -1,9 +1,12 @@
-@PersistenceContext
+@Repository
+public class CompanyDocVersionCustomRepository {
+    
+    @PersistenceContext
     private EntityManager entityManager;
     
     @Transactional
     public void updateFiles(File file) {
-        String sql = """
+        String sql = String.format("""
             UPDATE company_doc_version 
             SET files = COALESCE(
                 (
@@ -17,25 +20,25 @@
                                                 jsonb_set(
                                                     elem,
                                                     '{id}',
-                                                    CAST(:id AS jsonb)
+                                                    '"%s"'
                                                 ),
                                                 '{md5}',
-                                                CAST(:md5 AS jsonb)
+                                                '"%s"'
                                             ),
                                             '{name}',
-                                            CAST(:name AS jsonb)
+                                                '"%s"'
                                         ),
                                         '{filesize}',
-                                        CAST(:fileSize AS jsonb)
+                                        '%d'
                                     ),
                                     '{mimeType}',
-                                    CAST(:mimeType AS jsonb)
+                                    '"%s"'
                                 ),
                                 '{extension}',
-                                CAST(:extension AS jsonb)
+                                '"%s"'
                             ),
                             '{displayName}',
-                            CAST(:displayName AS jsonb)
+                            '"%s"'
                         )
                     )
                     FROM jsonb_array_elements(files) AS elem
@@ -44,16 +47,13 @@
             )
             WHERE id BETWEEN 760 AND 761 
             AND files IS NOT NULL
-            """;
+            """, 
+            file.getId(), 
+            file.getMd5(), 
+            file.getName(), 
+            file.getFileSize(),
+            file.getMimeType(), 
+            file.getExtension(), 
+            file.getDisplayName());
             
         Query query = entityManager.createNativeQuery(sql);
-        query.setParameter("id", "\"" + file.getId() + "\"");
-        query.setParameter("md5", "\"" + file.getMd5() + "\"");
-        query.setParameter("name", "\"" + file.getName() + "\"");
-        query.setParameter("fileSize", file.getFileSize().toString());
-        query.setParameter("mimeType", "\"" + file.getMimeType() + "\"");
-        query.setParameter("extension", "\"" + file.getExtension() + "\"");
-        query.setParameter("displayName", "\"" + file.getDisplayName() + "\"");
-        
-        query.executeUpdate();
-    }
