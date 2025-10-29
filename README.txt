@@ -2,7 +2,8 @@ UPDATE company_doc_version
 SET files = (
     SELECT jsonb_agg(
         CASE 
-            WHEN elem ? 'md5' THEN jsonb_set(elem, '{md5}', '"456"')
+            WHEN elem ? 'md5' AND jsonb_typeof(elem->'md5') = 'string' 
+            THEN jsonb_set(elem, '{md5}', '"456"')
             ELSE elem
         END
     )
