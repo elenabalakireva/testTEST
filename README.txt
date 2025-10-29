@@ -1,12 +1,4 @@
-@Repository
-public class CompanyDocVersionCustomRepository {
-    
-    @PersistenceContext
-    private EntityManager entityManager;
-    
-    @Transactional
-    public void updateFiles(File file) {
-        String sql = String.format("""
+String sql = """
             UPDATE company_doc_version 
             SET files = COALESCE(
                 (
@@ -20,25 +12,25 @@ public class CompanyDocVersionCustomRepository {
                                                 jsonb_set(
                                                     elem,
                                                     '{id}',
-                                                    '"%s"'
+                                                    '"123"'::jsonb
                                                 ),
                                                 '{md5}',
-                                                '"%s"'
+                                                '"456"'::jsonb
                                             ),
                                             '{name}',
-                                                '"%s"'
+                                            '"test"'::jsonb
                                         ),
                                         '{filesize}',
-                                        '%d'
+                                        '1'::jsonb
                                     ),
                                     '{mimeType}',
-                                    '"%s"'
+                                    '"test"'::jsonb
                                 ),
                                 '{extension}',
-                                '"%s"'
+                                '"test"'::jsonb
                             ),
                             '{displayName}',
-                            '"%s"'
+                            '"test"'::jsonb
                         )
                     )
                     FROM jsonb_array_elements(files) AS elem
@@ -47,13 +39,4 @@ public class CompanyDocVersionCustomRepository {
             )
             WHERE id BETWEEN 760 AND 761 
             AND files IS NOT NULL
-            """, 
-            file.getId(), 
-            file.getMd5(), 
-            file.getName(), 
-            file.getFileSize(),
-            file.getMimeType(), 
-            file.getExtension(), 
-            file.getDisplayName());
-            
-        Query query = entityManager.createNativeQuery(sql);
+            """;
