@@ -2,10 +2,18 @@ UPDATE company_doc_version
 SET files = COALESCE(
     (
         SELECT jsonb_agg(
-            CASE 
-                WHEN elem ? 'md5' THEN jsonb_set(elem, '{md5}', '"456"')
-                ELSE elem
-            END
+            jsonb_set(
+                jsonb_set(
+                    CASE 
+                        WHEN elem ? 'id' THEN jsonb_set(elem, '{id}', '"123"')
+                        ELSE elem
+                    END,
+                    '{md5}',
+                    CASE WHEN elem ? 'md5' THEN '"456"' ELSE elem->'md5' END
+                ),
+                '{name}',
+                CASE WHEN elem ? 'name' THEN '"test"' ELSE elem->'name' END
+            )
         )
         FROM jsonb_array_elements(files) AS elem
     ),
