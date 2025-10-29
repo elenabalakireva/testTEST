@@ -2,7 +2,7 @@
     private EntityManager entityManager;
     
     @Transactional
-    public void updateFiles(File file, Long startId, Long endId) {
+    public void updateFiles(File file) {
         String sql = """
             UPDATE company_doc_version 
             SET files = COALESCE(
@@ -17,45 +17,43 @@
                                                 jsonb_set(
                                                     elem,
                                                     '{id}',
-                                                    ?1
+                                                    CAST(:id AS jsonb)
                                                 ),
                                                 '{md5}',
-                                                ?2
+                                                CAST(:md5 AS jsonb)
                                             ),
                                             '{name}',
-                                            ?3
+                                            CAST(:name AS jsonb)
                                         ),
                                         '{filesize}',
-                                        ?4
+                                        CAST(:fileSize AS jsonb)
                                     ),
                                     '{mimeType}',
-                                    ?5
+                                    CAST(:mimeType AS jsonb)
                                 ),
                                 '{extension}',
-                                ?6
+                                CAST(:extension AS jsonb)
                             ),
                             '{displayName}',
-                            ?7
+                            CAST(:displayName AS jsonb)
                         )
                     )
                     FROM jsonb_array_elements(files) AS elem
                 ),
                 '[]'::jsonb
             )
-            WHERE id BETWEEN ?8 AND ?9 
+            WHERE id BETWEEN 760 AND 761 
             AND files IS NOT NULL
             """;
             
         Query query = entityManager.createNativeQuery(sql);
-        query.setParameter(1, "\"" + file.getId() + "\"");
-        query.setParameter(2, "\"" + file.getMd5() + "\"");
-        query.setParameter(3, "\"" + file.getName() + "\"");
-        query.setParameter(4, file.getFileSize().toString());
-        query.setParameter(5, "\"" + file.getMimeType() + "\"");
-        query.setParameter(6, "\"" + file.getExtension() + "\"");
-        query.setParameter(7, "\"" + file.getDisplayName() + "\"");
-        query.setParameter(8, startId);
-        query.setParameter(9, endId);
+        query.setParameter("id", "\"" + file.getId() + "\"");
+        query.setParameter("md5", "\"" + file.getMd5() + "\"");
+        query.setParameter("name", "\"" + file.getName() + "\"");
+        query.setParameter("fileSize", file.getFileSize().toString());
+        query.setParameter("mimeType", "\"" + file.getMimeType() + "\"");
+        query.setParameter("extension", "\"" + file.getExtension() + "\"");
+        query.setParameter("displayName", "\"" + file.getDisplayName() + "\"");
         
         query.executeUpdate();
     }
