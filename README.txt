@@ -1,12 +1,13 @@
-<plugin>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-maven-plugin</artifactId>
-    <configuration>
-        <jvmArguments>
-            --add-opens java.base/java.lang=ALL-UNNAMED
-            --add-opens java.base/sun.security.ssl=ALL-UNNAMED
-            --add-opens java.base/java.util=ALL-UNNAMED
-            --add-opens java.base/java.io=ALL-UNNAMED
-        </jvmArguments>
-    </configuration>
-</plugin>
+<jvmArguments>
+    --add-opens=java.base/java.lang=ALL-UNNAMED
+    --add-opens=java.base/sun.security.ssl=ALL-UNNAMED
+    --add-opens=java.base/java.util=ALL-UNNAMED
+    --add-opens=java.base/java.io=ALL-UNNAMED
+    --add-opens=java.base/java.net=ALL-UNNAMED
+    --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
+    --add-opens=java.base/java.io=ALL-UNNAMED
+    --add-opens=java.base/sun.util.calendar=ALL-UNNAMED
+    --add-opens=java.base/sun.security.action=ALL-UNNAMED
+    --add-opens=java.base/java.security=ALL-UNNAMED
+    --illegal-access=permit
+</jvmArguments>
