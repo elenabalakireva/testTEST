@@ -1,28 +1,71 @@
-<jvmArguments>
-    --add-opens=java.base/java.lang=ALL-UNNAMED
-    --add-opens=java.base/sun.security.ssl=ALL-UNNAMED
-    --add-opens=java.base/java.util=ALL-UNNAMED
-    --add-opens=java.base/java.io=ALL-UNNAMED
-    --add-opens=java.base/java.net=ALL-UNNAMED
-    --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
-    --add-opens=java.base/java.io=ALL-UNNAMED
-    --add-opens=java.base/sun.util.calendar=ALL-UNNAMED
-    --add-opens=java.base/sun.security.action=ALL-UNNAMED
-    --add-opens=java.base/java.security=ALL-UNNAMED
-    --illegal-access=permit
-</jvmArguments>
-
-Альтернативное решение через application.yaml:
-yaml
-spring:
-  jvmargs: >
-    --add-opens=java.base/java.lang=ALL-UNNAMED
-    --add-opens=java.base/sun.security.ssl=ALL-UNNAMED
-    --add-opens=java.base/java.util=ALL-UNNAMED
-    --add-opens=java.base/java.io=ALL-UNNAMED
-    --add-opens=java.base/java.net=ALL-UNNAMED
-    --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
-    --illegal-access=permit
-
-Для немедленного решения запустите с флагами:
-java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --illegal-access=permit -jar your-app.jar
+<build>
+        <finalName>${project.artifactId}</finalName>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>io.swagger.codegen.v3</groupId>
+                    <artifactId>swagger-codegen-maven-plugin</artifactId>
+                    <version>3.0.25</version>
+                    <configuration>
+                        <output>${project.build.directory}/generated-sources</output>
+                        <apiPackage>openapi.api</apiPackage>
+                        <modelPackage>openapi.model</modelPackage>
+                        <library>spring-mvc</library>
+                        <generateApis>false</generateApis>
+                        <generateModels>false</generateModels>
+                        <generateApiDocumentation>true</generateApiDocumentation>
+                        <generateModelDocumentation>true</generateModelDocumentation>
+                        <generateApiTests>false</generateApiTests>
+                        <generateModelTests>false</generateModelTests>
+                        <generateSupportingFiles>false</generateSupportingFiles>
+                        <configOptions>
+                            <bigDecimalAsString>true</bigDecimalAsString>
+                            <serializableModel>true</serializableModel>
+                            <reactive>false</reactive>
+                            <interfaceOnly>true</interfaceOnly>
+                            <generateForOpenFeign>true</generateForOpenFeign>
+                            <defaultInterfaces>false</defaultInterfaces>
+                            <dateLibrary>java8-localdatetime</dateLibrary>
+                            <java8>true</java8>
+                        </configOptions>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>io.swagger.codegen.v3</groupId>
+                <artifactId>swagger-codegen-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>apiAttribute</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/apiAttribute.yaml</inputSpec>
+                            <language>spring</language>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-generated-source</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${generated-sources-path}/${generated-sources-java-path}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
