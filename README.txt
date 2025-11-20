@@ -16,38 +16,10 @@ public List<CharacteristicLink> getCharacteristicLinksByOfferingIds(EntityTypeEn
     }
     log.debug("characteristicLinks = {}", characteristicLinks);
 
-    // Выделенный метод для загрузки и присвоения значений характеристик
     loadCharacteristicValues(characteristicLinks);
 
-    List<String> valuesIds = characteristicLinks.stream()
-            .flatMap(c -> c.getValues().stream())
-            .map(CommonDto::getId)
-            .collect(Collectors.toList());
-    if (CollectionUtils.isEmpty(valuesIds)) {
-        return characteristicLinks;
-    }
-    log.debug("valuesIds = {}", characteristicLinks);
-
-    List<ValueCondition> results = characteristicMapper.getCharacteristicValueConditions(valuesIds);
-    for (ValueCondition result : results) {
-        if (result == null) {
-            continue;
-        }
-        for (CharacteristicLink characteristicLink : characteristicLinks) {
-            if (characteristicLink.getValues() == null) {
-                continue;
-            }
-            for (Value value : characteristicLink.getValues()) {
-                if (value.getId().equals(result.getValueId())) {
-                    if (value.getConditions() == null) {
-                        value.setConditions(new ArrayList<>());
-                    }
-
-                    value.getConditions().add(result);
-                }
-            }
-        }
-    }
+    // Выделенный метод для загрузки условий значений характеристик
+    loadCharacteristicValueConditions(characteristicLinks);
     log.debug("characteristicLinks with values = {}", characteristicLinks);
 
     return characteristicLinks;
@@ -67,6 +39,38 @@ private void loadCharacteristicValues(List<CharacteristicLink> characteristicLin
                         characteristicLink.setValues(new ArrayList<>());
                     }
                     characteristicLink.getValues().add(value);
+                }
+            }
+        }
+    }
+}
+
+private void loadCharacteristicValueConditions(List<CharacteristicLink> characteristicLinks) {
+    List<String> valuesIds = characteristicLinks.stream()
+            .flatMap(c -> c.getValues().stream())
+            .map(CommonDto::getId)
+            .collect(Collectors.toList());
+    
+    if (CollectionUtils.isEmpty(valuesIds)) {
+        return;
+    }
+    log.debug("valuesIds = {}", characteristicLinks);
+
+    List<ValueCondition> results = characteristicMapper.getCharacteristicValueConditions(valuesIds);
+    for (ValueCondition result : results) {
+        if (result == null) {
+            continue;
+        }
+        for (CharacteristicLink characteristicLink : characteristicLinks) {
+            if (characteristicLink.getValues() == null) {
+                continue;
+            }
+            for (Value value : characteristicLink.getValues()) {
+                if (value.getId().equals(result.getValueId())) {
+                    if (value.getConditions() == null) {
+                        value.setConditions(new ArrayList<>());
+                    }
+                    value.getConditions().add(result);
                 }
             }
         }
