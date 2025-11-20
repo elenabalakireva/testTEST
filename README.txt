@@ -1,80 +1,53 @@
-public List<CharacteristicLink> getCharacteristicLinksByOfferingIds(EntityTypeEnum entityType, List<String> entityIds) {
-    log.debug("getCharacteristicLinksByOfferingIds: entityType = {}, entityIds = {}", entityType, entityIds);
+private static Value mergeRangeValues(Value value1, Value value2) {
+        Value resultValue = new Value();
 
-    if (CollectionUtils.isEmpty(entityIds)) {
-        return new ArrayList<>();
-    }
+        Integer numberMaxValue1 = value1.getNumberMaxValue();
+        Integer numberMinValue1 = value1.getNumberMinValue();
+        Integer numberMaxValue2 = value2.getNumberMaxValue();
+        Integer numberMinValue2 = value2.getNumberMinValue();
 
-    List<CharacteristicLink> characteristicLinks = fetchCharacteristicLinks(entityType, entityIds);
-    log.debug("characteristicLinks = {}", characteristicLinks);
-
-    enrichCharacteristicLinksWithValues(characteristicLinks);
-    log.debug("characteristicLinks with values = {}", characteristicLinks);
-
-    enrichValuesWithConditions(characteristicLinks);
-    log.debug("characteristicLinks with conditions = {}", characteristicLinks);
-
-    return characteristicLinks;
-}
-
-private List<CharacteristicLink> fetchCharacteristicLinks(EntityTypeEnum entityType, List<String> entityIds) {
-    if (entityType == EntityTypeEnum.OFFERING) {
-        log.info("entityIds = {}", entityIds);
-        return characteristicMapper.getOfferingCharacteristicLinks(entityIds);
-    } else {
-        log.info("entityType = {}, entityIds = {}", entityType, entityIds);
-        return characteristicMapper.getCharacteristicLinks(entityType, entityIds);
-    }
-}
-
-private void enrichCharacteristicLinksWithValues(List<CharacteristicLink> characteristicLinks) {
-    List<String> characteristicLinkIds = characteristicLinks.stream()
-            .map(CharacteristicLink::getId)
-            .collect(Collectors.toList());
-
-    if (CollectionUtils.isEmpty(characteristicLinkIds)) {
-        return;
-    }
-
-    List<Value> values = characteristicMapper.getCharacteristicValuesByIds(characteristicLinkIds);
-    Map<String, List<Value>> valuesByCharId = values.stream()
-            .collect(Collectors.groupingBy(Value::getCharId));
-
-    for (CharacteristicLink characteristicLink : characteristicLinks) {
-        List<Value> linkValues = valuesByCharId.get(characteristicLink.getId());
-        if (linkValues != null) {
-            characteristicLink.setValues(new ArrayList<>(linkValues));
-        }
-    }
-}
-
-private void enrichValuesWithConditions(List<CharacteristicLink> characteristicLinks) {
-    List<String> valuesIds = characteristicLinks.stream()
-            .filter(Objects::nonNull)
-            .map(CharacteristicLink::getValues)
-            .filter(Objects::nonNull)
-            .flatMap(List::stream)
-            .map(CommonDto::getId)
-            .collect(Collectors.toList());
-
-    if (CollectionUtils.isEmpty(valuesIds)) {
-        return;
-    }
-
-    List<ValueCondition> results = characteristicMapper.getCharacteristicValueConditions(valuesIds);
-    Map<String, List<ValueCondition>> conditionsByValueId = results.stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.groupingBy(ValueCondition::getValueId));
-
-    for (CharacteristicLink characteristicLink : characteristicLinks) {
-        if (characteristicLink.getValues() == null) {
-            continue;
-        }
-        for (Value value : characteristicLink.getValues()) {
-            List<ValueCondition> valueConditions = conditionsByValueId.get(value.getId());
-            if (valueConditions != null) {
-                value.setConditions(new ArrayList<>(valueConditions));
+        if (numberMinValue1 != null) {
+            if (numberMinValue2 != null && numberMinValue1.compareTo(numberMinValue2) <= 0) {
+                resultValue.setNumberMinValue(numberMinValue1);
+            } else {
+                resultValue.setNumberMinValue(numberMinValue2);
             }
+        } else if (numberMinValue2 != null) {
+            resultValue.setNumberMinValue(numberMinValue2);
         }
+        if (numberMaxValue1 != null) {
+            if (numberMaxValue2 != null && numberMaxValue1.compareTo(numberMaxValue2) > 0) {
+                resultValue.setNumberMaxValue(numberMaxValue1);
+            } else {
+                resultValue.setNumberMaxValue(numberMaxValue2);
+            }
+        } else if (numberMaxValue2 != null) {
+            resultValue.setNumberMaxValue(numberMaxValue2);
+        }
+
+        BigDecimal decimalMinValue1 = value1.getDecimalMinValue();
+        BigDecimal decimalMaxValue1 = value1.getDecimalMaxValue();
+        BigDecimal decimalMinValue2 = value2.getDecimalMinValue();
+        BigDecimal decimalMaxValue2 = value2.getDecimalMaxValue();
+
+        if (decimalMinValue1 != null) {
+            if (decimalMinValue2 != null && decimalMinValue1.compareTo(decimalMinValue2) <= 0) {
+                resultValue.setDecimalMinValue(decimalMinValue1);
+            } else {
+                resultValue.setDecimalMinValue(decimalMinValue2);
+            }
+        } else if (decimalMinValue2 != null) {
+            resultValue.setDecimalMinValue(decimalMinValue2);
+        }
+        if (decimalMaxValue1 != null) {
+            if (decimalMaxValue2 != null && decimalMaxValue1.compareTo(decimalMaxValue2) > 0) {
+                resultValue.setDecimalMaxValue(decimalMaxValue1);
+            } else {
+                resultValue.setDecimalMaxValue(decimalMaxValue2);
+            }
+        } else if (decimalMaxValue2 != null) {
+            resultValue.setDecimalMaxValue(decimalMaxValue2);
+        }
+
+        return resultValue;
     }
-}
