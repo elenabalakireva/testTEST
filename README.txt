@@ -1,3 +1,9 @@
+private static String compareNumberValueAndMaxValue = "number value [%s] is greater than parent characteristic max value [%s]";
+    private static String compareNumberValueAndMinValue = "number value [%s] is lesser than parent characteristic min value [%s]";
+    private static String compareDecimalValueAndMinValue = "decimal value [%s] is lesser than parent characteristic min value [%s]";
+    private static String compareDecimalValueAndMaxValue = "decimal value [%s] is greater than parent characteristic max value [%s]";
+    private static String compareDateValueAndMinValue = "date value [%s] is lesser than parent characteristic min value [%s]";
+
 public List<String> validateProduct(CommonCharacteristic upperCharacteristic, Value value) {
         return upperCharacteristic.getValues().stream()
                 .map(upperCharacteristicValue -> {
