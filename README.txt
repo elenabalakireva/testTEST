@@ -1,3 +1,138 @@
+public List<String> validateProduct(CommonCharacteristic upperCharacteristic, Value value) {
+        return upperCharacteristic.getValues().stream()
+                .map(upperCharacteristicValue -> {
+                    var minValue = upperCharacteristicValue.getDecimalMinValue();
+                    var currentValue = value.getDecimalValue();
+                    var currentDateValue = value.getDateValue();
+                    var currentNumberValue = value.getNumberValue();
+                    var maxValue = upperCharacteristicValue.getDecimalMaxValue();
+                    var upperValue = upperCharacteristicValue.getDecimalValue();
+                    var upperNumberMinValue = upperCharacteristicValue.getNumberMinValue();
+                    var upperNumberMaxValue = upperCharacteristicValue.getNumberMaxValue();
+                    var upperNumberValue = upperCharacteristicValue.getNumberValue();
+                    var upperDateMinValue = upperCharacteristicValue.getDateMinValue();
+                    var upperDateMaxValue = upperCharacteristicValue.getDateMaxValue();
+                    var upperDateValue = upperCharacteristicValue.getDateValue();
+
+                    // *** Попадание точных значений внутрь диапазонов
+                    // decimal
+
+                    String rangeDecimalString = rangeDecimal(minValue, maxValue, currentValue, upperValue);
+                    if (rangeDecimalString != null) {
+                        return rangeDecimalString;
+                    }
+
+                    // number
+
+                    String rangeNumberString = rangeNumber(upperNumberMinValue, upperNumberMaxValue, currentNumberValue, upperNumberValue);
+                    if (rangeNumberString != null) {
+                        return rangeNumberString;
+                    }
+
+                    // date
+                    String rangeDateString = rangeDate(upperDateMinValue, currentDateValue, upperDateMaxValue, upperDateValue);
+                    if (rangeDateString != null) {
+                        return rangeDateString;
+                    }
+
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .map(message -> String.format("%s: %s", upperCharacteristic.getBusinessKey(), message))
+                .collect(Collectors.toList());
+    }
+
+    private String rangeDecimal(BigDecimal minValue, BigDecimal maxValue, BigDecimal currentValue, BigDecimal upperValue) {
+        if (minValue != null && (currentValue == null || currentValue.compareTo(minValue) < 0)) {
+            return String.format(compareDecimalValueAndMinValue,
+                    currentValue,
+                    minValue
+            );
+        }
+
+        if (maxValue != null && (currentValue == null || currentValue.compareTo(maxValue) > 0)) {
+            return String.format(compareDecimalValueAndMaxValue,
+                    currentValue,
+                    maxValue
+            );
+        }
+
+        if (upperValue != null && (!upperValue.equals(currentValue))) {
+            return String.format("decimal value [%s] is not equals to parent characteristic value [%s]",
+                    currentValue,
+                    upperValue
+            );
+        }
+        return null;
+    }
+
+    private String rangeNumber(Integer upperNumberMinValue, Integer upperNumberMaxValue, Integer currentNumberValue, Integer upperNumberValue) {
+        if (upperNumberMinValue != null && (currentNumberValue == null || currentNumberValue < upperNumberMinValue)) {
+            return String.format(compareNumberValueAndMinValue,
+                    currentNumberValue,
+                    upperNumberMinValue
+            );
+        }
+
+        if (upperNumberMaxValue != null && (currentNumberValue == null || currentNumberValue > upperNumberMaxValue)) {
+            return String.format(compareNumberValueAndMaxValue,
+                    currentNumberValue,
+                    upperNumberMaxValue
+            );
+        }
+
+        if (upperNumberValue != null && (!upperNumberValue.equals(currentNumberValue))) {
+            return String.format("number value [%s] is not equals to parent characteristic value [%s]",
+                    currentNumberValue,
+                    upperNumberValue
+            );
+        }
+        return null;
+    }
+
+    private String rangeDate(LocalDateTime upperDateMinValue, LocalDateTime currentDateValue, LocalDateTime upperDateMaxValue, LocalDateTime upperDateValue) {
+        if (upperDateMinValue != null && (currentDateValue == null || currentDateValue.compareTo(upperDateMinValue) < 0)) {
+            return String.format(compareDateValueAndMinValue,
+                    currentDateValue,
+                    upperDateMinValue
+            );
+        }
+
+        if (upperDateMaxValue != null && (currentDateValue == null || currentDateValue.compareTo(upperDateMaxValue) > 0)) {
+            return String.format("date value [%s] is greater than parent characteristic min value [%s]",
+                    currentDateValue,
+                    upperDateMaxValue
+            );
+        }
+
+        if (upperDateValue != null && (!upperDateValue.equals(currentDateValue))) {
+            return String.format("date value [%s] is not equals to parent characteristic value [%s]",
+                    currentDateValue,
+                    upperDateValue
+            );
+        }
+        return null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 package com.farzoom.factoring.catalog.service.inner;
 
 import com.farzoom.factoring.catalog.enums.EntityTypeEnum;
